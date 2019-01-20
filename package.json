@@ -1,0 +1,51 @@
+{
+  "name": "digup-ts",
+  "version": "1.0.0",
+  "description": "Type safe deep object selector",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vddrift/digup-ts.git"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build",
+    "test": "jest"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^23.3.1",
+    "jest": "^23.4.2",
+    "ts-jest": "^23.1.2",
+    "typescript": "^2.9.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "json"
+    ],
+    "rootDir": "./src",
+    "testEnvironment": "node",
+    "testRegex": "./src/index.test.ts",
+    "transform": {
+      ".(ts|tsx)": "ts-jest"
+    }
+  },
+  "keywords": [
+    "existential operator",
+    "null conditional operator",
+    "null propagation operator",
+    "optional chaining",
+    "safe navigation operator",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=6"
+  },
+  "dependencies": {
+    "@types/node": "^10.12.9"
+  }
+}
