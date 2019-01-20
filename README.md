@@ -12,7 +12,7 @@ It also takes an optional default value.
 ## Install
 
 ```bash
-npm i --save safe-ts
+npm i --save dig-ts
 ```
 
 ### Requirements
@@ -23,7 +23,7 @@ npm i --save safe-ts
 ## Example Usage
 
 ```typescript
-import { safe } from 'safe-ts';
+import { safe } from 'dig-ts';
 
 const abc = {
     a: {
@@ -66,7 +66,7 @@ https://github.com/Morglod/ts-pathof
 
 ### Type Preservation
 
-`safe-ts` preserves TypeScript typings and code-completion by IDEs like Visual Studio Code or WebStorm.
+`dig-ts` preserves TypeScript typings and code-completion by IDEs like Visual Studio Code or WebStorm.
 
 ```typescript
 const abc = {a: {b: {c: 'C'}}};
@@ -83,7 +83,7 @@ https://github.com/yayoc/optional-chain
 
 To traverse optional properties, wrap your object in the `all` function, included in `ts-safe`. 
 ```typescript
-import { safe, all } from 'safe-ts';
+import { safe, all } from 'dig-ts';
 
 // Everything is optional.
 type ABCDE = {a?: {b?: {c?: {d?: {e?: string}}}}}
@@ -119,4 +119,4 @@ Please keep this in mind when using optional properties.
 
 ## License
 
-`safe-ts` is MIT Licensed.
+`dig-ts` is MIT Licensed.
