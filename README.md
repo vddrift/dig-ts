@@ -1,42 +1,121 @@
-# Safe nested object selector
+# digup nested object selector
 
 `dig-ts` handles nested objects and arrays,
 without throwing error `Cannot read property 'x' of undefined`.
 
-It's compact, 
-supported by all browsers, 
- preserves Typescript typings and code-completion during development by your IDE (like WebStorm or Visual Studio Code). 
+#### Features
+- Typescript support, for proper code-completion while coding.
+- Supported by all browsers 
+- Light weight
+- Supports arrays, nested get, set, delete.
+- Transform any structure to any other with find, filter and many other features.
 
-It also takes an optional default value.
-
-## Install
+#### Install
 
 ```bash
 npm i --save dig-ts
 ```
 
-### Requirements
+#### Requirements
 
 - TypeScript >= 2.9
-- NodeJS >= 6
 
-## Example Usage
+## Example `dig` Usage
 
 ```typescript
-import { safe } from 'dig-ts';
+import { dig } from 'dig-ts';
 
-const abc = {
-    a: {
-        b: [
-            {c: 'C-0'}, 
-        ],
-    }
-};
+// Let's pretend abc is unpredictable and maybe incomplete.
+const response = {a:
+                    {b: [
+                          {c: 'First'}, 
+                          {c: 'Second'}
+                        ]
+                    }
+                  };
 
-let c1 = safe(_=> abc.a.b[0].c); // 'C-0'
+let first = dig(response, 'a', 'b', 0, 'c').get(); // 'First'
+let maybe = dig(response, 'a', 'b', 9, 'c').get(); // undefined
+let str   = dig(response, 'a', 'b', 9, 'c').get('unknown'); // 'unknown'
 
-let c9 = safe(_=> abc.a.b[9].c, 'C-9'); // 'C-9'
 ```
+
+#### shorter format
+`digup` immediately returns a value, without `.get()`. 
+
+```typescript
+import { digup } from 'dig-ts';
+
+// Let's say response is as above.
+
+let first = digup(response, 'a', 'b', 0, 'c'); // 'First'
+let maybe = digup(response, 'a', 'b', 9, 'c'); // undefined
+let str   = digup(response, ['a', 'b', 9, 'c'], 'unknown'); // 'unknown'
+```
+`dig` offers a lot more, but `digup` is fine for reading only. 
+As you can see, it accepts a default value, like 'unknown'. 
+Just wrap the keys in an array.
+The shorter format is also available in a separate small package [`ts-digup`](https://www.npmjs.com/package/ts-digup).
+
+
+## Typescript support
+
+Typescript is fully supported, so your editor points out missing properties.
+```
+let X = dig(response, 'X').get(); // typescript error 'X' doesn't exist...
+```
+
+## Array find
+Use a function to find a single item in an array.
+```
+import { dig, last } from 'dig-ts';
+
+const store = {
+    customers: [  // some are incomplete
+        {name:'A'},
+        {name:'B', purchases: 1},
+        {name:'C', purchases: 5,  viewIds:[3, 1, 2]}
+        {name:'D', purchases: 10, viewIds:[8, 7, 5, 6]}
+    ]
+}
+
+const customerB = dig(store, 'customers', cust=>cust.name=='B').get();
+
+// 'last' function is included in dig-ts
+const lastOne   = dig(store, 'customers', last).get();
+
+// digup also accepts functions
+const customerC = digup(store, 'customers', cust=>cust.name=='C');
+```
+
+## Array filter
+```
+// Let's take 'store' from above.
+
+// Who bought more than 3 things?
+const goodCustomers = dig(store, 'customers')
+                         .filter(cust=>customer.purchases > 3);
+
+const firstOne  = dig(store, 'customers', 0).get();
+const customerB = dig(store, 'customers', cust=>cust.name=='B').get();
+
+// digup also accepts functions
+const customerC = digup(store, 'customers', cust=>cust.name=='C');
+
+// 'last' function is included in dig-ts
+const lastOne   = dig(store, 'customers', last).get();
+
+```
+Some more complex examples
+```
+store.products = [
+    {id:1, name: 'sneakers'},
+    {id:2, name: 'flipflops'},
+    {name: 'flopsneakers'} // incomplete
+];
+
+```
+
 ## Alternatives
 Logical expressions are very verbose for long paths.
 ```
@@ -48,7 +127,7 @@ but removes typescript support.
 ```typescript
 import { get } from 'lodash';
 
-let c9 = get(abc, 'a.b[9].c', 'C-9');
+let c9 = get(abc, 'a.b[1].c', 'C-1');
 ```
 
 [`ts-optchain`](https://www.npmjs.com/package/ts-optchain) preserves typescript typings and has an elegant syntax. 
@@ -58,11 +137,20 @@ Please consider this option if the [browser support](https://caniuse.com/#search
 ```typescript
 import { oc } from 'ts-optchain';
 
-let c9 = oc(abc).b.c('C-9');
+let c1 = oc(abc).b.c('C-1');
 ```
-Reading the `ts-optchain `[`source`](https://github.com/rimeto/ts-optchain) and this [article](https://medium.com/inside-rimeto/optional-chaining-in-typescript-622c3121f99b) tought me a lot and inspired me to publish my simple alternative. 
+With [`ts-safe`](https://www.npmjs.com/package/ts-save) you provide an anonymous function and optional default value. Any runtime errors are caught and ignored. However, optional properties might be a problem. Full disclosure: I wrote ts-safe.
+```typescript
+import { safe } from 'ts-safe';
 
-https://github.com/Morglod/ts-pathof
+let abc = {a:{b:{c:'C'}}}; // Let's pretend abc isn't so predictable.
+
+let c = safe(_=>a.b.c, 'C-default');
+```
+More alternatives:
+
+- https://github.com/facebookincubator/idx
+- https://github.com/yayoc/optional-chain
 
 ### Type Preservation
 
@@ -71,19 +159,17 @@ https://github.com/Morglod/ts-pathof
 ```typescript
 const abc = {a: {b: {c: 'C'}}};
 
-let b = safe(_=> abc.a.b, {c:'C default'});
+let b = digup(_=> abc.a.b, {c:'C default'});
 
 console.log(b.c) // When typing 'b' your code editor suggests '.c'
 ```
 
-https://github.com/facebookincubator/idx
-https://github.com/yayoc/optional-chain
 
 ### Optional properties
 
-To traverse optional properties, wrap your object in the `all` function, included in `ts-safe`. 
+To traverse optional properties, wrap your object in the `all` function, included in `ts-digup`. 
 ```typescript
-import { safe, all } from 'dig-ts';
+import { digup } from 'dig-ts';
 
 // Everything is optional.
 type ABCDE = {a?: {b?: {c?: {d?: {e?: string}}}}}
@@ -95,15 +181,14 @@ const abc:ABCDE = {
     }
 };
 
-let e1 = safe(_=> abc.a.b.c.d.e); // typescript error: Object is possibly 'undefined'
-let e2 = safe(_=> all(abc).a.b.c.d.e); // no typescript error. e2 becomes undefined, as expected.
+let e1 = digup(abc, 'a', 'b', 'c', 'd');
 ```
 
 Note: the `all` function tells typescript all (nested) properties exits. 
 This affects the return value. For instance, using `abc` from before: 
 ```typescript
 // 'all' tells typescript not to worry whether anything exists.
-let c = safe(_=> all(abc).a.b.c);
+let c = digup(_=> all(abc).a.b.c);
 
 if (c) {
     // When c exists, typescript falsely assumes d and e exist.
