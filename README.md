@@ -88,7 +88,8 @@ const store = {
     ]
 }
 ```
-##Using Array.find among keys
+## Using Array.find among keys
+
 Use a function to find a single item in an array.
 ```typescript
 import { dig, last } from 'dig-ts';
@@ -130,7 +131,7 @@ const bigOldSales = dig(store, 'customers')
 bigSales.dig(last, 'name').get();
 
 ```
-##.dig chaining
+## .dig chaining
 As you can tell by examples 2 and 3 above, 
 `dig` is added to the filter return value.
 `dig.filter` and `dig.sort` return a DigArray, which allows chaining:
