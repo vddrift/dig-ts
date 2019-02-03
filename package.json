@@ -1,10 +1,10 @@
 {
-  "name": "digup-ts",
+  "name": "dig-ts",
   "version": "1.0.0",
   "description": "Type safe deep object selector",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vddrift/digup-ts.git"
+    "url": "git+https://github.com/vddrift/dig-ts.git"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
