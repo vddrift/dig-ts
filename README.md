@@ -66,55 +66,89 @@ let X = dig(response, 'X').get(); // typescript error 'X' doesn't exist...
 ```
 
 ## Array find
-Use a function to find a single item in an array.
-```
-import { dig, last } from 'dig-ts';
 
+The examples below all use the following data:
+```typescript
 const store = {
-    customers: [  // some are incomplete
-        {name:'A'},
-        {name:'B', purchases: 1},
-        {name:'C', purchases: 5,  viewIds:[3, 1, 2]}
-        {name:'D', purchases: 10, viewIds:[8, 7, 5, 6]}
+    customers: [
+        {name: 'A', age:20}, // missing purchases
+        {name: 'B', // missing age
+            purchases: [
+                {name: 'shoes', price:10}
+            ]
+        },
+        {name: 'C', age:60,
+            purchases: [
+                {name: 'flipflops'}, // missing price
+                {name: 'boots', price:20}
+            ]
+        },
+        {}, // missing name + purchases
+        {purchases: [{name: 'boots', price:20}]} // missing name
     ]
 }
+```
+##Using Array.find among keys
+Use a function to find a single item in an array.
+```typescript
+import { dig, last } from 'dig-ts';
 
+// Get customer B using a function
 const customerB = dig(store, 'customers', cust=>cust.name=='B').get();
 
-// 'last' function is included in dig-ts
-const lastOne   = dig(store, 'customers', last).get();
-
-// digup also accepts functions
+// Similar with shorter format.
 const customerC = digup(store, 'customers', cust=>cust.name=='C');
+
+// Get price of boots of customer C (or 0 if not found)
+const price = dig(store, 'customers', cust=>cust.name=='C', 'purchases', pur=>pur.name=='boots', 'price').get(0);
+
+// 'last' function is included in dig-ts
+const lastSale = dig(store, 'customers', last, 'purchases', last).get(); // boots object
+
 ```
 
-## Array filter
-```
+## Array methods: filter, sort
+
+All array methods are available, along with `dig` to keep on digging.
+```typescript
 // Let's take 'store' from above.
 
-// Who bought more than 3 things?
+// 1. Who bought expensive stuff?
 const goodCustomers = dig(store, 'customers')
-                         .filter(cust=>customer.purchases > 3);
+                        .filter(customer=>
+                            dig(customer, 'purchases')
+                                .some(purchase=>purchase.price>10)
+                            );
 
-const firstOne  = dig(store, 'customers', 0).get();
-const customerB = dig(store, 'customers', cust=>cust.name=='B').get();
+// 2. Which expensive products were made by the last old customer?
+const bigOldSales = dig(store, 'customers')
+                       .filter(customer=>customer.age>=60)
+                       .dig(last, 'products')
+                       .filter(product=>product.price>10);
 
-// digup also accepts functions
-const customerC = digup(store, 'customers', cust=>cust.name=='C');
-
-// 'last' function is included in dig-ts
-const lastOne   = dig(store, 'customers', last).get();
-
-```
-Some more complex examples
-```
-store.products = [
-    {id:1, name: 'sneakers'},
-    {id:2, name: 'flipflops'},
-    {name: 'flopsneakers'} // incomplete
-];
+// 3. What was the name of that last once?
+bigSales.dig(last, 'name').get();
 
 ```
+##.dig chaining
+As you can tell by examples 2 and 3 above, 
+`dig` is added to the filter return value.
+`dig.filter` and `dig.sort` return a DigArray, which allows chaining:
+
+```typescript
+const bigOldSales = dig(store, 'customers')
+                       .filter(customer=>customer.age>=60)
+                       .dig(last, 'products')
+                       .sort((a,b)=>a>b?-1:1)
+                       .dig(0, 'name').get();
+```
+`reduce` and `map` return a regular Array, without `.dig` for chaining.
+In case you're wondering why: map and reduce can change the array content,
+making it unpredictable for typescript. 
+
+## exists 
+
+## return 
 
 ## Alternatives
 Logical expressions are very verbose for long paths.
