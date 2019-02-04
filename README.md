@@ -55,7 +55,7 @@ let str   = digup(response, ['a', 'b', 9, 'c'], 'unknown'); // 'unknown'
 `dig` offers a lot more, but `digup` is fine for reading only. 
 As you can see, it accepts a default value, like 'unknown'. 
 Just wrap the keys in an array.
-The shorter format is also available in a separate small package [`ts-digup`](https://www.npmjs.com/package/ts-digup).
+The shorter format is also available in a separate small package [`digup-ts`](https://www.npmjs.com/package/digup-ts).
 
 
 ## Typescript support

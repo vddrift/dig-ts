@@ -16,7 +16,8 @@
     },
     "exclude": [
         "node_modules",
-        "./src/index.test.ts"
+        "./src/index.test.ts",
+        "./src/debug.ts"
     ],
     "include": ["src"]
 }
