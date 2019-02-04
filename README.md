@@ -88,7 +88,7 @@ const store = {
     ]
 }
 ```
-## Using Array.find among keys
+## Array.find among keys
 
 Use a function to find a single item in an array.
 ```typescript
@@ -108,9 +108,8 @@ const lastSale = dig(store, 'customers', last, 'purchases', last).get(); // boot
 
 ```
 
-## Array methods: filter, sort
+## `Array.filter`, `Array.sort` and chaining
 
-All array methods are available, along with `dig` to keep on digging.
 ```typescript
 // Let's take 'store' from above.
 
@@ -131,10 +130,9 @@ const bigOldSales = dig(store, 'customers')
 bigSales.dig(last, 'name').get();
 
 ```
-## .dig chaining
 As you can tell by examples 2 and 3 above, 
-`dig` is added to the filter return value.
-`dig.filter` and `dig.sort` return a DigArray, which allows chaining:
+the `.dig` method is added to the result of `filter` and `sort`. 
+This allows us to keep on digging, aka [method chaining](https://schier.co/blog/2013/11/14/method-chaining-in-javascript.html):
 
 ```typescript
 const bigOldSales = dig(store, 'customers')
