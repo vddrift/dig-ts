@@ -50,7 +50,7 @@ interface ArrayResponse<Arr, Item> extends Array<Item> {
     set(value:Arr, create?:boolean):Arr;
     exists():boolean;
     return(func: (dig: Digger<Item>)=>any):any // tweak result. For branching etc.
-    // digOn:DigOnFunction<Arr>
+    dig:DigOnFunction<Arr>
     // delete():Arr|undefined;
     //  map<U>(callbackfn: (value: Item, index: number, array: Item[]) => U, thisArg?: any): U[];
     // push(value: Item, create?:boolean): number; // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
@@ -219,11 +219,11 @@ class Digger<T>
         // console.log('callbackfn.length=', callbackfn.toString());
         result = result ? result.filter(callbackfn) : [];
         // console.log('result_after.length=', result.length);
-        const digOn:DigOnFunction<any> = function(...keys:any[]) {
+        const dig:DigOnFunction<any> = function(...keys:any[]) {
             // DigOnFunction is Digger without the first argument.
             return new Digger<T>(result, keys);
         };
-        return Object.assign(result, {digOn:digOn});
+        return Object.assign(result, {dig:dig});
     }
     find(predicate: (value: T, index: number, obj: T[]) => boolean): T | undefined {
         // find(func:(value:T) => boolean) {
@@ -771,7 +771,7 @@ interface DigNumber<T> {
 }
 interface FilteredArray<T> extends Array<T> {
     // dig:DigFunction
-    digOn:DigOnFunction<T[]>
+    dig:DigOnFunction<T[]>
     // dig:Dig<T>
     // dig<a extends Key, T> (//object:Array<Item>,
     //                     a:a&IndexOf<T>  |Find<T>)

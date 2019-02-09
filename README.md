@@ -141,15 +141,35 @@ const bigOldSales = dig(store, 'customers')
                        .sort((a,b)=>a>b?-1:1)
                        .dig(0, 'name').get();
 ```
-`reduce` and `map` return a regular Array, without `.dig` for chaining.
-In case you're wondering why: map and reduce can change the array content,
+In case you're wondering why `reduce` and `map` don't return a DigArray with `.dig` method: 
+map and reduce can change the array content,
 making it unpredictable for typescript. 
 
 ## exists 
+Check if a value exists:
+```typescript
+if (dig(store, 'customers', 99, 'products', 0).exists()) {
+    // ...welcome 100th customer (if he/she bought anything).
+}
+```
 
 ## return 
+Make custom object
+```typescript
+const bootBuyers = dig(store, 'customers')
+                    .filter(customer=>dig(customer, 'purchases', purchase=>purchase.name==='boots')
+                    .return(customers => ({
+                        count: customers.length,
+                        first: customers.dig(0), 
+                        last: customers.dig(last)   
+                    }));
+                    
+}
+```
 
 ## Alternatives
+Here are some alternatives, only for reading nested data.
+
 Logical expressions are very verbose for long paths.
 ```
 let c2 = (abc.a && abc.a.b && abc.a.b[9] && abc.a.b[9].c) || 'C-9'

@@ -167,7 +167,7 @@ dig(oaoao, 'a').filter(a=>!a.b); oaoao.a[0].b[0].c;
 dig(maybeABC, 0, 'a').get();
 dig(maybeABC, 0, 'a', a=>!a[0].b, 'b').get();
 dig(oBranch, 'a2', 'b2_1').get();
-dig(oaoao, 'a').filter(a=>!a.b).digOn(0,'b').get();
+dig(oaoao, 'a').filter(a=>!a.b).dig(0,'b').get();
 const o15=dig(oaoao, 'a', a=>!a.b); o15[0].z.e;
 const o16=oaoao.a.find(a=>!!a.b); o16?o16.b:0;
 dig(oaoao, 'a', a=>!a[0].a).get();
@@ -191,8 +191,8 @@ const people = [{id:1,name:'a'}, {id:2,name:'b'}, {id:3,name:'c'}];
 const nameOfId1 = dig(people, item=>item.id==1, 'name'); nameOfId1;
 const people2 = dig(people).filter(person=>person.id>1);
 // people2.dig(people, 0, 'name');
-people2.digOn(last);
-people2.digOn(last, 'id');
+people2.dig(last);
+people2.dig(last, 'id');
 
 // const digon:DigFunction = dig;
 // digon.apply(null, [people, 0, 'name'])
@@ -202,7 +202,7 @@ people2.digOn(last, 'id');
 // pets[0].products[0].category; dig(pets, 0, 'age');
 // pets.dig(true).get();
 // const oldPets = dig(pets).filter(pet=>pet.age>4); oldPets[0].name
-const products = dig(families, 0, 'pets').filter(pet=>pet.age>4).digOn(0, 'name'); products;
+const products = dig(families, 0, 'pets').filter(pet=>pet.age>4).dig(0, 'name'); products;
 
 dig(<any>[],99).get([]);
 dig({a:1}, 'a').get(2);
@@ -238,9 +238,9 @@ dig(store, 'pets')
         {b:{c:3}}
     ];
     digUp(abc, [0]);
-    dig(abc).filter(a=>a.b.c>1).digOn(0, 'b', 'c');
-    dig(abc).filter(a=>a.b.c>1).digOn(last);
-    dig(abc).filter(a=>a.b.c>1).digOn('length');
+    dig(abc).filter(a=>a.b.c>1).dig(0, 'b', 'c');
+    dig(abc).filter(a=>a.b.c>1).dig(last);
+    dig(abc).filter(a=>a.b.c>1).dig('length');
 }
 { // new scope
     const abc = {a:{b:{c:{d:{e:{f:1}}}}}, a2:{b2:{c2:{d2:{e2:{f2:1}}}}}};

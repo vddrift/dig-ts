@@ -1,6 +1,6 @@
 {
   "name": "dig-ts",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Type safe deep object selector",
   "repository": {
     "type": "git",

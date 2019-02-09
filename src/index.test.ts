@@ -335,7 +335,7 @@ describe('digUp', () => {
         expect(oldPets[0].name).toEqual('dog');
         const productsOfOldDog = dig(families, 0, 'pets')
                         .filter(pet=>pet.age>4)
-                        .digOn(0, 'products').get([]);
+                        .dig(0, 'products').get([]);
         expect(productsOfOldDog.length).toEqual(3);
     });
     it('should work with :any', () => {
@@ -398,6 +398,18 @@ describe('digUp', () => {
         // const abc:any = [{a:[{b:[{c:1},{c:2}]}]}];
         // dig(abc, 0, 'a',0,'b').delete();
         // dig(abc, 0, 'a',0,'b').push(1);
+    });
+    it('should use exits', () => {
+        let abc:{a:{b:{c:number}[]}[]}[] = [{a:[{b:[{c:1},{c:2}]}]}];
+        const b1 = dig(abc, 0, 'a', 0, 'b', 1).exists();
+        const b9 = dig(abc, 0, 'a', 0, 'b', 9).exists();
+        const b  = dig(abc, 0, 'a', 0, 'b').exists();
+        expect(b1).toBe(true);
+        expect(b9).toBe(false);
+        expect(b).toBe(true);
+        abc = []
+        const c  = dig(abc, 0, 'a', 0, 'b', 0, 'c').exists();
+        expect(c).toBe(false);
     });
 });
 
