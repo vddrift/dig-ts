@@ -41,18 +41,18 @@ let str   = dig(response, 'a', 'b', 9, 'c').get('unknown'); // 'unknown'
 ```
 
 #### shorter format
-`digup` immediately returns a value, without `.get()`. 
+`digUp` immediately returns a value, without `.get()`. 
 
 ```typescript
-import { digup } from 'dig-ts';
+import { digUp } from 'dig-ts';
 
 // Let's say response is as above.
 
-let first = digup(response, 'a', 'b', 0, 'c'); // 'First'
-let maybe = digup(response, 'a', 'b', 9, 'c'); // undefined
-let str   = digup(response, ['a', 'b', 9, 'c'], 'unknown'); // 'unknown'
+let first = digUp(response, 'a', 'b', 0, 'c'); // 'First'
+let maybe = digUp(response, 'a', 'b', 9, 'c'); // undefined
+let str   = digUp(response, ['a', 'b', 9, 'c'], 'unknown'); // 'unknown'
 ```
-`dig` offers a lot more, but `digup` is fine for reading only. 
+`dig` offers a lot more, but `digUp` is fine for reading only. 
 As you can see, it accepts a default value, like 'unknown'. 
 Just wrap the keys in an array.
 The shorter format is also available in a separate small package [`digup-ts`](https://www.npmjs.com/package/digup-ts).
@@ -88,17 +88,31 @@ const store = {
     ]
 }
 ```
+### Update
+To set the price of first boots to 22:
+```typescript
+dig(store).collect('customer', 'purchases')
+    .filter(purchase=>purchase.name=='boots')
+    .dig(0, 'price')
+    .set(10)
+```
+
+### Delete
+To remove the last customer:
+```typescript
+dig(store, 'customer', last).delete()
+```
 ## Array.find among keys
 
 Use a function to find a single item in an array.
 ```typescript
-import { dig, last } from 'dig-ts';
+import { dig, digUp, last } from 'dig-ts';
 
-// Get customer B using a function
-const customerB = dig(store, 'customers', cust=>cust.name=='B').get();
+// Get last purchase of customer B using a function
+const customerB = dig(store, 'customers', cust=>cust.name=='B', 'purchases', last).get();
 
 // Similar with shorter format.
-const customerC = digup(store, 'customers', cust=>cust.name=='C');
+const customerC = digUp(store, 'customers', cust=>cust.name=='C', 'purchases', last);
 
 // Get price of boots of customer C (or 0 if not found)
 const price = dig(store, 'customers', cust=>cust.name=='C', 'purchases', pur=>pur.name=='boots', 'price').get(0);
@@ -138,8 +152,7 @@ This allows us to keep on digging, aka [method chaining](https://schier.co/blog/
 const bigOldSales = dig(store, 'customers')
                        .filter(customer=>customer.age>=60)
                        .dig(last, 'products')
-                       .sort((a,b) => a==b? 0 : (a<b? -1 : 1)
-                       .dig(0, 'name').get();
+                       .sort((a,b) => a.price==b.price? 0 : (a.price<b.price? -1 : 1);
 ```
 In case you're wondering why `reduce` and `map` don't return a DigArray with `.dig` method: 
 map and reduce can change the array content,
@@ -166,7 +179,7 @@ const bootBuyers = dig(store, 'customers')
 ```
 
 ## Putting it all together
-Here's a more complex example, using the example data above, combining many of the features above.
+Here's a more complex example, using the example data above, combining several methods.
 ```typescript
 import { dig, last } from 'dig-ts';
 
@@ -174,12 +187,12 @@ const summary = dig(response, 'data', 'customers')
     .return(customers => ({
         customerCount: customers.length,
         purchaseCount: customers.collect('purchases').length,
-        biggestPurchase: customers.collect('purchases').max('price'),
+        biggestPurchase: customers.max('purchases', 'price'),
         biggestPurchaseByLastOldCustomer: customers.filter(customer=>customer.age>=60)
             .dig(last, 'products').max('price')
         ,
         topCustomer: customers.filter(cust => dig(cust).max('purchases', 'length') 
-                                             == customers.max('purchases', 'length'))
+                                           == customers.max('purchases', 'length'))
                          .dig(last)
                          .return(cust=>({
                             name: cust.name,
@@ -192,7 +205,7 @@ const summary = dig(response, 'data', 'customers')
     );
 ```
 summary will be:
-```json
+```
 {
     customerCount: 5,
     purchaseCount: 4,
