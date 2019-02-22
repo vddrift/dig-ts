@@ -63,6 +63,7 @@ interface ArrayResponse<Arr, Item> extends Array<Item> {
     min: DigNumber<Item>;
     max: DigNumber<Item>;
     avg: DigNumber<Item>;
+    collect: DigCollect<Item>
 }
 // interface ArrayResponse<Arr, Item> extends Array<Item>, ArrayDigger<Arr, Item> {
 //
@@ -105,6 +106,9 @@ class Digger<T>
     }
     exists() {
         return this.makeResult(false) !== undefined;
+    }
+    collect(...keys) {
+        return collect(this.object, keys);
     }
     delete(uncreate=true) {
         let result = this.makeResult(false);
@@ -244,16 +248,16 @@ class Digger<T>
         return func.call(null, dig);
     }
     min(...keys) {
-        keys;
-        return 1;
+        const numbers = collectNumbers(this.object, keys);
+        return numbers.length ? numbers.reduce((prev, cur)=> Math.min(prev, cur)) : undefined;
     }
     max(...keys) {
-        keys;
-        return 0;
+        const numbers = collectNumbers(this.object, keys);
+        return numbers.length ? numbers.reduce((prev, cur)=> Math.max(prev, cur)) : undefined;
     }
-    avg(...keys) {
-        keys;
-        return 0;
+    avg(...keys):number|undefined {
+        const numbers = collectNumbers(this.object, keys);
+        return numbers.length ? numbers.reduce((prev, cur)=> prev + cur) / numbers.length : undefined;
     }
     merge(object) {
         let result:Object = this.makeResult(true);
@@ -298,6 +302,37 @@ class Digger<T>
         } while (result !== null && i < this.path.length);
         return result
     }
+}
+function collect(input, keys: string[], result = new Array()) {
+
+    // A. Arrays: flatten
+    if (input instanceof Array
+        // array.length is a property of an object. That's handled below.
+        && (keys[0]!='length' || keys.length > 1)) {
+
+        // arrays are flattened by collecting the same keys from each item.
+        input.forEach(item => {
+            collect(item, keys, result);
+        });
+    }
+    // B. Object: traverse or add to result
+    else if (typeof input === 'object' && input !== null && keys.length) {
+        const keysCopy = keys.slice(0); // shallow copy
+        const key = <string>keysCopy.shift();
+        if (keysCopy.length) {
+            collect(input[key], keysCopy, result); // traverse
+        } else {
+            result.push(input[key]);
+        }
+    }
+    // C. undefined and other: ignore
+
+    return result;
+}
+function collectNumbers(object, keys) {
+    return collect(object, keys)
+            .map(val=>parseFloat(val))
+            .filter(val=>typeof val === 'number' && !isNaN(val));
 }
 // export const dig:DigFunction = (object:object, ...keys:(number|string)[]): Dig => new Dig(object, keys);
 export const dig:DigFunction = function<T>(object:T, ...keys:(number|string)[]): Digger<T> {
@@ -737,19 +772,19 @@ export interface DigOnFunction<T> {
             ? ArrayResponse <ResultF<T,a,b,c,d,e,f>, U>
             : ObjectResponse<ResultF<T,a,b,c,d,e,f>>;
 }
-interface DigNumber<T> {
+interface DigCollect<T> {
     <a extends string>
-    (a:a&keyof NoArray<T>&MustBeNumber<NoArrayA<T,a>>):number
+    (a:a&keyof NoArray<T>|'length'):any[]
     <a extends string,
         b extends string>
     (a:a&keyof NoArray<T>,
-     b:b&keyof NoArrayA<T,a>&MustBeNumber<NoArrayB<T,a,b>>):number;
+     b:b&keyof NoArrayA<T,a>|'length'):any[];
     <a extends string,
         b extends string,
         c extends string>
     (a:a&keyof NoArray<T>,
      b:b&keyof NoArrayA<T,a>,
-     c:c&keyof NoArrayB<T,a,b>&MustBeNumber<NoArrayC<T,a,b,c>>):number;
+     c:c&keyof NoArrayB<T,a,b>|'length'):any[];
     <a extends string,
         b extends string,
         c extends string,
@@ -757,7 +792,7 @@ interface DigNumber<T> {
     (a:a&keyof NoArray<T>,
      b:b&keyof NoArrayA<T,a>,
      c:c&keyof NoArrayB<T,a,b>,
-     d:d&keyof NoArrayC<T,a,b,c>&MustBeNumber<NoArrayD<T,a,b,c,d>>):number;
+     d:d&keyof NoArrayC<T,a,b,c>|'length'):any[];
     <a extends string,
         b extends string,
         c extends string,
@@ -767,7 +802,39 @@ interface DigNumber<T> {
      b:b&keyof NoArrayA<T,a>,
      c:c&keyof NoArrayB<T,a,b>,
      d:d&keyof NoArrayC<T,a,b,c>,
-     e:e&keyof NoArrayD<T,a,b,c,d>&MustBeNumber<NoArrayE<T,a,b,c,d,e>>):number;
+     e:e&keyof NoArrayD<T,a,b,c,d>|'length'):any[];
+}
+interface DigNumber<T> {
+    <a extends string>
+    (a:a&(keyof NoArray<T>|'length')&MustBeNumber<NoArrayA<T,a>>):number|undefined
+    <a extends string,
+        b extends string>
+    (a:a&keyof NoArray<T>,
+     b:b&(keyof NoArrayA<T,a>|'length')&MustBeNumber<NoArrayB<T,a,b>>):number|undefined;
+    <a extends string,
+        b extends string,
+        c extends string>
+    (a:a&keyof NoArray<T>,
+     b:b&keyof NoArrayA<T,a>,
+     c:c&(keyof NoArrayB<T,a,b>|'length')&MustBeNumber<NoArrayC<T,a,b,c>>):number|undefined;
+    <a extends string,
+        b extends string,
+        c extends string,
+        d extends string>
+    (a:a&keyof NoArray<T>,
+     b:b&keyof NoArrayA<T,a>,
+     c:c&keyof NoArrayB<T,a,b>,
+     d:d&(keyof NoArrayC<T,a,b,c>|'length')&MustBeNumber<NoArrayD<T,a,b,c,d>>):number|undefined;
+    <a extends string,
+        b extends string,
+        c extends string,
+        d extends string,
+        e extends string>
+    (a:a&keyof NoArray<T>,
+     b:b&keyof NoArrayA<T,a>,
+     c:c&keyof NoArrayB<T,a,b>,
+     d:d&keyof NoArrayC<T,a,b,c>,
+     e:e&(keyof NoArrayD<T,a,b,c,d>|'length')&MustBeNumber<NoArrayE<T,a,b,c,d,e>>):number|undefined;
 }
 interface FilteredArray<T> extends Array<T> {
     // dig:DigFunction

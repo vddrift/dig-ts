@@ -138,7 +138,7 @@ This allows us to keep on digging, aka [method chaining](https://schier.co/blog/
 const bigOldSales = dig(store, 'customers')
                        .filter(customer=>customer.age>=60)
                        .dig(last, 'products')
-                       .sort((a,b)=>a>b?-1:1)
+                       .sort((a,b) => a==b? 0 : (a<b? -1 : 1)
                        .dig(0, 'name').get();
 ```
 In case you're wondering why `reduce` and `map` don't return a DigArray with `.dig` method: 
@@ -149,12 +149,12 @@ making it unpredictable for typescript.
 Check if a value exists:
 ```typescript
 if (dig(store, 'customers', 99, 'products', 0).exists()) {
-    // ...welcome 100th customer (if he/she bought anything).
+    // ...welcome 100th customer, if (s)he bought anything.
 }
 ```
 
 ## return 
-Make custom object
+Returning a custom object.
 ```typescript
 const bootBuyers = dig(store, 'customers')
                     .filter(customer=>dig(customer, 'purchases', purchase=>purchase.name==='boots')
@@ -163,8 +163,6 @@ const bootBuyers = dig(store, 'customers')
                         first: customers.dig(0), 
                         last: customers.dig(last)   
                     }));
-                    
-}
 ```
 
 ## Alternatives

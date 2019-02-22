@@ -400,16 +400,61 @@ describe('digUp', () => {
         // dig(abc, 0, 'a',0,'b').push(1);
     });
     it('should use exits', () => {
-        let abc:{a:{b:{c:number}[]}[]}[] = [{a:[{b:[{c:1},{c:2}]}]}];
+        type ABC = {a:{b:{c:number}[]}[]}[]
+        let abc:ABC = [{a:[{b:[{c:1},{c:2}]}]}];
         const b1 = dig(abc, 0, 'a', 0, 'b', 1).exists();
         const b9 = dig(abc, 0, 'a', 0, 'b', 9).exists();
         const b  = dig(abc, 0, 'a', 0, 'b').exists();
         expect(b1).toBe(true);
         expect(b9).toBe(false);
         expect(b).toBe(true);
-        abc = []
+        abc = [];
         const c  = dig(abc, 0, 'a', 0, 'b', 0, 'c').exists();
         expect(c).toBe(false);
+    });
+    it('should collect various values', () => {
+        type ABC = Array<{ a: { b: Array<{ c: number }> } }>
+        const abc: ABC = [
+            {a: {b: [{c: 1}, {c: 2}]}},
+            {a: {b: [{c: 3}, {c: 4}]}}
+        ];
+        const Cs = dig(abc).collect('a', 'b', 'c');
+        expect(Cs).toEqual([1, 2, 3, 4]);
+    });
+    it('should collect various arrays', () => {
+        type ABCarr = Array<{a:{b:Array<{c:Array<number>}>}}>
+        const abcArr:ABCarr = [
+            {a:{b:[{c:[1]},{c:[2]}]}},
+            {a:{b:[{c:[3]},{c:[4]}]}}
+        ];
+        const CsArr = dig(abcArr).collect('a', 'b', 'c');
+        expect(CsArr).toEqual([[1],[2],[3],[4]]);
+    });
+    it('should collect various array lengths', () => {
+        type ABCarr = Array<{a:{b:Array<{c:Array<number>}>}}>
+        const abcArr:ABCarr = [
+            {a:{b:[{c:[1]},{c:[2]}]}},
+            {a:{b:[{c:[3]},{c:[4,5,6]}]}}
+        ];
+        const CsArr = dig(abcArr).collect('a', 'b', 'c', 'length');
+        expect(CsArr).toEqual([1,1,1,3]);
+    });
+    it('should find min, max, avg', () => {
+        const abc:{a:{b:{c:number|undefined|string}[]}[]}[] = [
+            {a:[{b:[{c:1},
+                    {c:'2'},
+                    {c:2},
+                    {c:'3'},
+                    {c:undefined}]
+                }]
+            }];
+        const maxC = dig(abc).max('a', 'b', 'c');
+        expect(maxC).toBe(3);
+        const minC = dig(abc).min('a', 'b', 'c');
+        expect(minC).toBe(1);
+        const avgC = dig(abc).avg('a', 'b', 'c');
+        expect(avgC).toBe(2); // (1+2+2+3)/4 = 8/4=2
+        // const avgCs = dig(abc).collect('a', 'b', 'c').filter(avg);
     });
 });
 
