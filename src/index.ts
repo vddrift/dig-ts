@@ -1,4 +1,22 @@
-// export function digUp (object:any, ...keys:any[]): any {
+
+// export class DigFilter<T> {
+//     constructor(public args:any[]) {
+//         console.log(args);
+//     }
+//     filter(value: T, index: number, array: T[]) {
+//         console.log(value, index, array, this.args);
+//     }
+// }
+// class DigMaxFilter<T> extends DigFilter<T> {
+//     constructor(public args:any[]) {
+//         super(args);
+//         console.log(args);
+//     }
+//     filter(value: T, index: number, array: T[]) {
+//         console.log(value, index, array, this.args);
+//     }
+// }
+
 export const digUp:DigupFunction = (object:any, ...keys:any[]): any =>{
     let result;
     let key = keys.shift();
@@ -30,6 +48,7 @@ interface FirstObjectResponse<T>  {
     return(func:(dig:Digger<T>)=>any):any // tweak result. For branching etc.
     min: DigNumber<T>;
     max: DigNumber<T>;
+    sum: DigNumber<T>;
     avg: DigNumber<T>;
 }
 interface ObjectResponse<T> {
@@ -42,6 +61,7 @@ interface ObjectResponse<T> {
     return(func:(dig:Digger<T>)=>any):any // tweak result. For branching etc.
     min: DigNumber<T>;
     max: DigNumber<T>;
+    sum: DigNumber<T>;
     avg: DigNumber<T>;
 }
 interface ArrayResponse<Arr, Item> extends Array<Item> {
@@ -62,6 +82,7 @@ interface ArrayResponse<Arr, Item> extends Array<Item> {
     // find(func: (value: Item) => boolean): Item|undefined;
     min: DigNumber<Item>;
     max: DigNumber<Item>;
+    sum: DigNumber<Item>;
     avg: DigNumber<Item>;
     collect: DigCollect<Item>
 }
@@ -76,7 +97,7 @@ interface ArrayDigger<Arr, Item> {
     return(func: (dig: Digger<Item>)=>any):any // tweak result. For branching etc.
     // digOn:DigOnFunction<Arr>
     // delete():Arr|undefined;
-    //  map<U>(callbackfn: (value: Item, index: number, array: Item[]) => U, thisArg?: any): U[];
+    // map<U>(callbackfn: (value: Item, index: number, array: Item[]) => U, thisArg?: any): U[];
     // push(value: Item, create?:boolean): number; // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
     // concat(value: Item[], create?:boolean): Item[];
     // forEach(func: (value: Item) => void): void;
@@ -86,6 +107,7 @@ interface ArrayDigger<Arr, Item> {
     // find(func: (value: Item) => boolean): Item|undefined;
     min: DigNumber<Item>;
     max: DigNumber<Item>;
+    sum: DigNumber<Item>;
     avg: DigNumber<Item>;
 }
 
@@ -108,7 +130,8 @@ class Digger<T>
         return this.makeResult(false) !== undefined;
     }
     collect(...keys) {
-        return collect(this.object, keys);
+        const result = collect(this.object, keys);
+        return new Digger(result, []);
     }
     delete(uncreate=true) {
         let result = this.makeResult(false);
@@ -216,7 +239,6 @@ class Digger<T>
         }
         return;
     }
-    // filter<Item>(callbackfn:(value:Item) => any) {
     filter(callbackfn: (value: T, index: number, array: T[]) => boolean) {
         let result:T[] = this.makeResult(true, true);
         // console.log('result=', result.length);
@@ -227,7 +249,7 @@ class Digger<T>
             // DigOnFunction is Digger without the first argument.
             return new Digger<T>(result, keys);
         };
-        return Object.assign(result, {dig:dig});
+        return Object.assign(result, {dig:dig, toArray:()=>result});
     }
     find(predicate: (value: T, index: number, obj: T[]) => boolean): T | undefined {
         // find(func:(value:T) => boolean) {
@@ -248,16 +270,16 @@ class Digger<T>
         return func.call(null, dig);
     }
     min(...keys) {
-        const numbers = collectNumbers(this.object, keys);
-        return numbers.length ? numbers.reduce((prev, cur)=> Math.min(prev, cur)) : undefined;
+        return getMin(this.object, keys);
     }
     max(...keys) {
-        const numbers = collectNumbers(this.object, keys);
-        return numbers.length ? numbers.reduce((prev, cur)=> Math.max(prev, cur)) : undefined;
+        return getMax(this.object, keys);
+    }
+    sum(...keys) {
+        return getSum(this.object, keys);
     }
     avg(...keys):number|undefined {
-        const numbers = collectNumbers(this.object, keys);
-        return numbers.length ? numbers.reduce((prev, cur)=> prev + cur) / numbers.length : undefined;
+        return getAvg(this.object, keys);
     }
     merge(object) {
         let result:Object = this.makeResult(true);
@@ -333,6 +355,66 @@ function collectNumbers(object, keys) {
     return collect(object, keys)
             .map(val=>parseFloat(val))
             .filter(val=>typeof val === 'number' && !isNaN(val));
+}
+function getMax(object, keys) {
+    const numbers = collectNumbers(object, keys);
+    return numbers.length ? numbers.reduce((prev, cur)=> Math.max(prev, cur)) : undefined;
+}
+function getMin(object, keys) {
+    const numbers = collectNumbers(object, keys);
+    return numbers.length ? numbers.reduce((prev, cur)=> Math.min(prev, cur)) : undefined;
+}
+function getSum(object, keys) {
+    const numbers = collectNumbers(object, keys);
+    return numbers.length ? numbers.reduce((prev, cur)=> prev + cur) : undefined;
+}
+function getAvg(object, keys) {
+    const numbers = collectNumbers(object, keys);
+    return numbers.length ? numbers.reduce((prev, cur)=> prev + cur) / numbers.length : undefined;
+}
+export function max<T>(...keys) {
+    let best;
+    return (item: T, index: number, array: T[]) => {
+        // Get best value of entire array. Only once. Just remember it.
+        if (index === 0) {
+            best = getMax(array, keys);
+        }
+        // See if this item has the best value.
+        return (best !== undefined) ? best === getMax(item, keys) : false;
+    }
+}
+export function min<T>(...keys) {
+    let best;
+    return (item: T, index: number, array: T[]) => {
+        // Get best value of entire array. Only once. Just remember it.
+        if (index === 0) {
+            best = getMin(array, keys);
+        }
+        // See if this item has the best value.
+        return (best !== undefined) ? best === getMin(item, keys) : false;
+    }
+}
+export function sum<T>(...keys) {
+    let best;
+    return (item: T, index: number, array: T[]) => {
+        // Get best value of entire array. Only once. Just remember it.
+        if (index === 0) {
+            best = getSum(array, keys);
+        }
+        // See if this item has the best value.
+        return (best !== undefined) ? best === getSum(item, keys) : false;
+    }
+}
+export function avg<T>(...keys) {
+    let best;
+    return (item: T, index: number, array: T[]) => {
+        // Get best value of entire array. Only once. Just remember it.
+        if (index === 0) {
+            best = getAvg(array, keys);
+        }
+        // See if this item has the best value.
+        return (best !== undefined) ? best === getAvg(item, keys) : false;
+    }
 }
 // export const dig:DigFunction = (object:object, ...keys:(number|string)[]): Dig => new Dig(object, keys);
 export const dig:DigFunction = function<T>(object:T, ...keys:(number|string)[]): Digger<T> {
@@ -772,19 +854,20 @@ export interface DigOnFunction<T> {
             ? ArrayResponse <ResultF<T,a,b,c,d,e,f>, U>
             : ObjectResponse<ResultF<T,a,b,c,d,e,f>>;
 }
+
 interface DigCollect<T> {
     <a extends string>
-    (a:a&keyof NoArray<T>|'length'):any[]
+    (a:a&keyof NoArray<T>|'length'):ArrayResponse<ResultA<T,a>, ItemOf<ResultA<T,a>>>
     <a extends string,
         b extends string>
     (a:a&keyof NoArray<T>,
-     b:b&keyof NoArrayA<T,a>|'length'):any[];
+     b:b&keyof NoArrayA<T,a>|'length'):ArrayResponse<ResultB<T,a,b>, ItemOf<ResultB<T,a,b>>>
     <a extends string,
         b extends string,
         c extends string>
     (a:a&keyof NoArray<T>,
      b:b&keyof NoArrayA<T,a>,
-     c:c&keyof NoArrayB<T,a,b>|'length'):any[];
+     c:c&keyof NoArrayB<T,a,b>|'length'):ArrayResponse<ResultC<T,a,b,c>, ItemOf<ResultC<T,a,b,c>>>
     <a extends string,
         b extends string,
         c extends string,
@@ -792,7 +875,7 @@ interface DigCollect<T> {
     (a:a&keyof NoArray<T>,
      b:b&keyof NoArrayA<T,a>,
      c:c&keyof NoArrayB<T,a,b>,
-     d:d&keyof NoArrayC<T,a,b,c>|'length'):any[];
+     d:d&keyof NoArrayC<T,a,b,c>|'length'):ArrayResponse<ResultD<T,a,b,c,d>, ItemOf<ResultD<T,a,b,c,d>>>
     <a extends string,
         b extends string,
         c extends string,
@@ -802,7 +885,7 @@ interface DigCollect<T> {
      b:b&keyof NoArrayA<T,a>,
      c:c&keyof NoArrayB<T,a,b>,
      d:d&keyof NoArrayC<T,a,b,c>,
-     e:e&keyof NoArrayD<T,a,b,c,d>|'length'):any[];
+     e:e&keyof NoArrayD<T,a,b,c,d>|'length'):ArrayResponse<ResultE<T,a,b,c,d,e>, ItemOf<ResultE<T,a,b,c,d,e>>>
 }
 interface DigNumber<T> {
     <a extends string>

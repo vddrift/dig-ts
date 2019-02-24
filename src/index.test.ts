@@ -1,4 +1,4 @@
-import {dig, digUp, last} from './index';
+import {dig, digUp, last, max} from './index';
 import {families} from './sample-data/families';
 
 describe('digUp', () => {
@@ -456,6 +456,24 @@ describe('digUp', () => {
         expect(avgC).toBe(2); // (1+2+2+3)/4 = 8/4=2
         // const avgCs = dig(abc).collect('a', 'b', 'c').filter(avg);
     });
-});
+    fit('should filter min, max', () => {
+        const abc:{a:{b:{c:number|undefined|string}}[]}[] = [
+            {a:[{b:{c:1}}]},
+            {a:[{b:{c:3}}]},
+            {a:[{b:{c:2}}]},
+            {a:[{b:{c:3}}]},
+        ];
+        // const b = dig(abc).collect('a', 'b');
+        // const BwithMaxC = b.filter2(max('c'));
+        const Cmax = dig(abc).collect('a').max('b', 'c');
+        expect(Cmax).toEqual(3);
+        const b = dig(abc).collect('a', 'b');
+        const firstMax = b.find(max('c'));
+        expect(firstMax).toEqual({c:3});
+        const allMax = b.filter(max('c'));
+        // expect(allMax).toEqual([{c: 3}, {c: 3}]); --> won't work because allMax array also has .dig method.
+        expect(JSON.stringify(allMax)).toEqual(JSON.stringify([{c: 3}, {c: 3}]));
 
+    });
+});
 

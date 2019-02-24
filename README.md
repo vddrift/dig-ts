@@ -1,7 +1,7 @@
 # dig nested object selector
 
 `dig-ts` handles nested objects and arrays,
-without throwing error `Cannot read property 'x' of undefined`.
+without throwing error `Cannot read property 'x' of undefined`, while fully supporting typescript..
 
 #### Features
 - Typescript support, for proper code-completion while coding.
@@ -141,7 +141,7 @@ const bigOldSales = dig(store, 'customers')
                        .filter(product=>product.price>10);
 
 // 3. What was the name of that last once?
-bigSales.dig(last, 'name').get();
+bigOldSales.dig(last, 'name').get();
 
 ```
 As you can tell by examples 2 and 3 above, 
@@ -181,39 +181,38 @@ const bootBuyers = dig(store, 'customers')
 ## Putting it all together
 Here's a more complex example, using the example data above, combining several methods.
 ```typescript
-import { dig, last } from 'dig-ts';
+import { dig, last, max, min } from 'dig-ts';
 
 const summary = dig(response, 'data', 'customers')
     .return(customers => ({
-        customerCount: customers.length,
         purchaseCount: customers.collect('purchases').length,
         biggestPurchase: customers.max('purchases', 'price'),
         biggestPurchaseByLastOldCustomer: customers.filter(customer=>customer.age>=60)
             .dig(last, 'products').max('price')
         ,
-        topCustomer: customers.filter(cust => dig(cust).max('purchases', 'length') 
-                                           == customers.max('purchases', 'length'))
-                         .dig(last)
-                         .return(cust=>({
+        topCustomer: customers
+                        .find(max('purchases', 'length'))
+                        .return(cust=>({
                             name: cust.name,
                             ...dig(cust, 'purchases').return(purchases => ({
-                                itemCount: purchases.length;
+                                itemCount: purchases.length,
+                                topPurchase: purchases.max('price'),
                                 totalPrice: purchases.sum('price')
                             }))
-                         })
+                         }))
         })
     );
 ```
 summary will be:
 ```
 {
-    customerCount: 5,
     purchaseCount: 4,
     biggestPurchase: 20,
     biggestPurchaseByLastOldCustomer: 20,
     topCustomer: {
         name: 'C',
         itemCount: 2,
+        topPurchase: 20
         totalPrice: 20
     }
 }
