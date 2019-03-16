@@ -137,7 +137,7 @@ const goodCustomers = dig(store, 'customers')
 // 2. Which expensive products were made by the last old customer?
 const bigOldSales = dig(store, 'customers')
                        .filter(customer=>customer.age>=60)
-                       .dig(last, 'products')
+                       .dig(last, 'purchases')
                        .filter(product=>product.price>10);
 
 // 3. What was the name of that last once?
@@ -149,10 +149,6 @@ the `.dig` method is added to the result of `filter` and `sort`.
 This allows us to keep on digging, aka [method chaining](https://schier.co/blog/2013/11/14/method-chaining-in-javascript.html):
 
 ```typescript
-const bigOldSales = dig(store, 'customers')
-                       .filter(customer=>customer.age>=60)
-                       .dig(last, 'products')
-                       .sort((a,b) => a.price==b.price? 0 : (a.price<b.price? -1 : 1);
 ```
 In case you're wondering why `reduce` and `map` don't return a DigArray with `.dig` method: 
 map and reduce can change the array content,

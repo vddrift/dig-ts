@@ -325,6 +325,12 @@ class Digger<T>
         return result
     }
 }
+
+/**
+ * Get child numbers from an object or array, e.g.
+ *      abc = {a:{b:[{c:1}, {c:2}]}}
+ *      collect(abc, ['a', 'b', 'c'])   //   [1, 2]
+ */
 function collect(input, keys: string[], result = new Array()) {
 
     // A. Arrays: flatten
@@ -394,17 +400,6 @@ export function min<T>(...keys) {
         return (best !== undefined) ? best === getMin(item, keys) : false;
     }
 }
-export function sum<T>(...keys) {
-    let best;
-    return (item: T, index: number, array: T[]) => {
-        // Get best value of entire array. Only once. Just remember it.
-        if (index === 0) {
-            best = getSum(array, keys);
-        }
-        // See if this item has the best value.
-        return (best !== undefined) ? best === getSum(item, keys) : false;
-    }
-}
 export function avg<T>(...keys) {
     let best;
     return (item: T, index: number, array: T[]) => {
@@ -414,6 +409,42 @@ export function avg<T>(...keys) {
         }
         // See if this item has the best value.
         return (best !== undefined) ? best === getAvg(item, keys) : false;
+    }
+}
+/**
+ * Example:
+ const abc  = [{a:{b:[{c:1},{c:10}]}}, {a:{b:[{c:1}]}}, {a:{}}];
+ const tens = abc.filter(where('a','b','c').greaterThanOrEqual(10));
+ // tens becomes: [{a:{b:[{c:1},{c:10}]}]
+*/
+export function where<T>(...keys) {
+    return new Where<T>(keys);
+}
+type FilterFunction<T> = (value: T, index: number, array: T[]) => boolean;
+
+class Where<T> {
+    constructor(private keys) {}
+    greaterThan(number): FilterFunction<T> {
+        return item => collect(item, this.keys).some(n => n > number);
+    }
+    greaterThanOrEqual(number): FilterFunction<T> {
+        return item => collect(item, this.keys).some(n => n >= number);
+    }
+    lessThan(number): FilterFunction<T> {
+        return item => collect(item, this.keys).some(n => n < number);
+    }
+    lessThanOrEqual(number): FilterFunction<T> {
+        return item => collect(item, this.keys).some(n => n <= number);
+    }
+    equals(number): FilterFunction<T> {
+        return item => collect(item, this.keys).some(n => n == number);
+    }
+    check(fn): FilterFunction<T> {
+        return item => {
+            const collection = collect(item, this.keys)
+                return collection.some(n => fn.call(null, n))
+        };
+
     }
 }
 // export const dig:DigFunction = (object:object, ...keys:(number|string)[]): Dig => new Dig(object, keys);

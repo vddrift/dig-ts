@@ -1,4 +1,4 @@
-import {dig, digUp, last, max} from './index';
+import {dig, digUp, last, max, where} from './index';
 import {families} from './sample-data/families';
 
 describe('digUp', () => {
@@ -456,7 +456,7 @@ describe('digUp', () => {
         expect(avgC).toBe(2); // (1+2+2+3)/4 = 8/4=2
         // const avgCs = dig(abc).collect('a', 'b', 'c').filter(avg);
     });
-    fit('should filter min, max', () => {
+    it('should filter min, max', () => {
         const abc:{a:{b:{c:number|undefined|string}}[]}[] = [
             {a:[{b:{c:1}}]},
             {a:[{b:{c:3}}]},
@@ -474,6 +474,21 @@ describe('digUp', () => {
         // expect(allMax).toEqual([{c: 3}, {c: 3}]); --> won't work because allMax array also has .dig method.
         expect(JSON.stringify(allMax)).toEqual(JSON.stringify([{c: 3}, {c: 3}]));
 
+    });
+    it('should filter where greaterThanOrEquals', () => {
+        const abc  = [{a:{b:[{c:1},{c:10}]}}, {a:{b:[{c:3}]}}, {a:{}}];
+        const tens = abc.filter(where('a','b','c').greaterThanOrEqual(10));
+        expect(tens).toEqual([{a:{b:[{c:1},{c:10}]}}]);
+    });
+    it('should filter where check', () => {
+        const abc  = [{a:{b:[{c:1},{c:10}]}}, {a:{b:[{c:3}]}}, {a:{}}];
+        const tens = abc.filter(where('a','b','c').check(c => c === 3));
+        expect(tens).toEqual([{a:{b:[{c:3}]}}]);
+    });
+    it('should filter where equals', () => {
+        const abc  = [{a:{b:[{c:1},{c:10}]}}, {a:{b:[{c:3}]}}, {a:{}}];
+        const tens = abc.filter(where('a','b','c').equals(3));
+        expect(tens).toEqual([{a:{b:[{c:3}]}}]);
     });
 });
 
