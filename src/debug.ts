@@ -270,7 +270,7 @@ dig(store, 'pets')
     /**/       digUp(abc,'a',                                  'X'); // !!!
     const a3 = digUp(abc,['a'],A);         _=a3&&(a3.b.c||a3.b. X);
     const b3 = digUp(abc,['a','b'],B);     _=b3&&(b3.c.d||b3   .X);
-    /**/       digUp(abc,['a','b'],                             A);
+    /**/       digUp(abc,['a','b'],                             A); // X --> A fails
     const c3 = digUp(abc,['a','b','c'],C); _=c3&&(c3.d.e||c3   .X);
     /**/       digUp(abc,['a'],                                 X);
     /**/       digUp(abc,['a','b'],                             X);

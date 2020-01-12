@@ -18,6 +18,9 @@
 // }
 
 export const digUp:DigupFunction = (object:any, ...keys:any[]): any =>{
+    if (object === undefined) {
+        return undefined;
+    }
     let result;
     let key = keys.shift();
     if (key instanceof Array) {
@@ -671,36 +674,89 @@ interface DigupFunction {
         :any|undefined
 
 }
+type ResponseA<T,a> = A<T,a> extends Array<infer U>
+    ? ArrayResponse <ResultA<T,a>, U>
+    : ObjectResponse<ResultA<T,a>>;
+
+type ResponseB<T,a,b> = B<T,a,b> extends Array<infer U>
+    ? ArrayResponse <ResultB<T,a,b>, U>
+    : ObjectResponse<ResultB<T,a,b>>;
+
+type ResponseC<T,a,b,c> = C<T,a,b,c> extends Array<infer U>
+    ? ArrayResponse <ResultC<T,a,b,c>, U>
+    : ObjectResponse<ResultC<T,a,b,c>>;
+
+type ResponseD<T,a,b,c,d> = D<T,a,b,c,d> extends Array<infer U>
+    ? ArrayResponse <ResultD<T,a,b,c,d>, U>
+    : ObjectResponse<ResultD<T,a,b,c,d>>;
+
+type ResponseE<T,a,b,c,d,e> = E<T,a,b,c,d,e> extends Array<infer U>
+    ? ArrayResponse <ResultE<T,a,b,c,d,e>, U>
+    : ObjectResponse<ResultE<T,a,b,c,d,e>>;
+
+type ResponseF<T,a,b,c,d,e,f> = F<T,a,b,c,d,e,f> extends Array<infer U>
+    ? ArrayResponse <ResultF<T,a,b,c,d,e,f>, U>
+    : ObjectResponse<ResultF<T,a,b,c,d,e,f>>;
+
 interface DigFunction {
     <T>(object: T):
         T extends Array<infer U>
             ? ArrayResponse<T, U>
             : FirstObjectResponse<T>;
 
+
     <a extends Key, T>(object: T,
-                       a: a & IndexOf<T> | Find<T>):
-        A<T, a> extends Array<infer U>
-            ? ArrayResponse<ResultA<T,a>,U>
-            : ObjectResponse<ResultA<T, a>>;
+                       a: a & IndexOf<T> | Find<T>): ResponseA<T,a>
+        // A<T, a> extends Array<infer U>
+        //     ? ArrayResponse<ResultA<T,a>,U>
+        //     : ObjectResponse<ResultA<T, a>>;
+
+    // 'a' OR
+    // ['a', 'b'?, 'c'?, ...etc]
+    <T, Arr extends Array<Key>,
+        a extends Key,
+        b extends Key,
+        c extends Key,
+        d extends Key,
+        e extends Key,
+        f extends Key> (object:T,
+                        // a:Arr&{0:a&IndexOf<T>        |Find<T>}|{0:a&IndexOf<T>        |Find<T>,1:b&IndexOf<A<T,a>>   |Find<A<T,a>>}
+                        a:
+                            Arr&{0:a&IndexOf<T>          |Find<T>,
+                            1?:b&IndexOf<A<T,a>>         |Find<A<T,a>>
+                            2?:c&IndexOf<B<T,a,b>>       |Find<B<T,a,b>>
+                            3?:d&IndexOf<C<T,a,b,c>>     |Find<C<T,a,b,c>>
+                            4?:e&IndexOf<D<T,a,b,c,d>>   |Find<D<T,a,b,c,d>>
+                            5?:f&IndexOf<E<T,a,b,c,d,e>> |Find<E<T,a,b,c,d,e>>
+                        }
+                        //|a&IndexOf<T>|Find<T>
+    )
+        : Arr extends {0:any, 1:any, 2:any, 3:any, 4:any, 5:any} ? ResponseF<T,a,b,c,d,e,f>
+        : Arr extends {0:any, 1:any, 2:any, 3:any, 4:any}        ? ResponseE<T,a,b,c,d,e>
+        : Arr extends {0:any, 1:any, 2:any, 3:any}               ? ResponseD<T,a,b,c,d>
+        : Arr extends {0:any, 1:any, 2:any}                      ? ResponseC<T,a,b,c>
+        : Arr extends {0:any, 1:any}                             ? ResponseB<T,a,b>
+        : Arr extends {0:any}                                    ? ResponseA<T,a>
+        : any;
 
     <a extends Key,
         b extends Key, T>
     (object: T,
      a: a & IndexOf  <T>    | Find  <T>,
-     b: b & IndexOf<A<T,a>> | Find<A<T,a>>):
-        B<T,a,b> extends Array<infer U>
-            ? ArrayResponse <ResultB<T,a,b>, U>
-            : ObjectResponse<ResultB<T,a,b>>;
+     b: b & IndexOf<A<T,a>> | Find<A<T,a>>): ResponseB<T,a,b>
+        // B<T,a,b> extends Array<infer U>
+        //     ? ArrayResponse <ResultB<T,a,b>, U>
+        //     : ObjectResponse<ResultB<T,a,b>>;
 
     <a extends Key,
         b extends Key,
         c extends Key, T>(object: T,
                           a: a & IndexOf  <T>      | Find  <T>,
                           b: b & IndexOf<A<T,a>>   | Find<A<T,a>>,
-                          c: c & IndexOf<B<T,a,b>> | Find<B<T,a,b>>):
-        C<T,a,b,c> extends Array<infer U>
-            ? ArrayResponse <ResultC<T,a,b,c>, U>
-            : ObjectResponse<ResultC<T,a,b,c>>;
+                          c: c & IndexOf<B<T,a,b>> | Find<B<T,a,b>>): ResponseC<T,a,b,c>
+        // C<T,a,b,c> extends Array<infer U>
+    //     ? ArrayResponse <ResultC<T,a,b,c>, U>
+    //     : ObjectResponse<ResultC<T,a,b,c>>;
 
     <a extends Key,
         b extends Key,
@@ -709,10 +765,10 @@ interface DigFunction {
                           a: a & IndexOf  <T>        | Find  <T>,
                           b: b & IndexOf<A<T,a>>     | Find<A<T,a>>,
                           c: c & IndexOf<B<T,a,b>>   | Find<B<T,a,b>>,
-                          d: d & IndexOf<C<T,a,b,c>> | Find<C<T,a,b,c>>):
-        D<T,a,b,c,d> extends Array<infer U>
-            ? ArrayResponse <ResultD<T,a,b,c,d>, U>
-            : ObjectResponse<ResultD<T,a,b,c,d>>;
+                          d: d & IndexOf<C<T,a,b,c>> | Find<C<T,a,b,c>>): ResponseD<T,a,b,c,d>
+        // D<T,a,b,c,d> extends Array<infer U>
+        //     ? ArrayResponse <ResultD<T,a,b,c,d>, U>
+        //     : ObjectResponse<ResultD<T,a,b,c,d>>;
 
     <a extends Key,
         b extends Key,
@@ -723,10 +779,10 @@ interface DigFunction {
                           b: b & IndexOf<A<T,a>>       | Find<A<T,a>>,
                           c: c & IndexOf<B<T,a,b>>     | Find<B<T,a,b>>,
                           d: d & IndexOf<C<T,a,b,c>>   | Find<C<T,a,b,c>>,
-                          e: e & IndexOf<D<T,a,b,c,d>> | Find<D<T,a,b,c,d>>):
-        E<T,a,b,c,d,e> extends Array<infer U>
-            ? ArrayResponse <ResultE<T,a,b,c,d,e>, U>
-            : ObjectResponse<ResultE<T,a,b,c,d,e>>;
+                          e: e & IndexOf<D<T,a,b,c,d>> | Find<D<T,a,b,c,d>>): ResponseE<T,a,b,c,d,e>
+        // E<T,a,b,c,d,e> extends Array<infer U>
+        //     ? ArrayResponse <ResultE<T,a,b,c,d,e>, U>
+        //     : ObjectResponse<ResultE<T,a,b,c,d,e>>;
 
     <a extends Key,
         b extends Key,
@@ -739,10 +795,10 @@ interface DigFunction {
                           c: c & IndexOf<B<T,a,b>>       | Find<B<T,a,b>>,
                           d: d & IndexOf<C<T,a,b,c>>     | Find<C<T,a,b,c>>,
                           e: e & IndexOf<D<T,a,b,c,d>>   | Find<D<T,a,b,c,d>>,
-                          f: f & IndexOf<E<T,a,b,c,d,e>> | Find<E<T,a,b,c,d,e>>):
-        F<T,a,b,c,d,e,f> extends Array<infer U>
-            ? ArrayResponse <ResultF<T,a,b,c,d,e,f>, U>
-            : ObjectResponse<ResultF<T,a,b,c,d,e,f>>;
+                          f: f & IndexOf<E<T,a,b,c,d,e>> | Find<E<T,a,b,c,d,e>>): ResponseF<T,a,b,c,d,e,f>
+        // F<T,a,b,c,d,e,f> extends Array<infer U>
+        //     ? ArrayResponse <ResultF<T,a,b,c,d,e,f>, U>
+        //     : ObjectResponse<ResultF<T,a,b,c,d,e,f>>;
 }
 // todo: combine 'a', 'b', 'c', etc...
 // <T, a,

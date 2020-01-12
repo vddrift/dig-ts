@@ -234,6 +234,13 @@ describe('digUp', () => {
            .get(d_default);
        expect(d).toEqual({e:{}})
     });
+    fit('should handle undefined object', () => {
+      const abc:any = undefined;
+      const digupResult = digUp(abc, 'a', 'b', 'c');
+      expect(digupResult).toBeUndefined();
+      const digResult =  dig(abc, 'a', 'b', 'c').get();
+      expect(digResult).toBeUndefined();
+    });
     it('should use digUp-ts', () => {
         interface Money {
             amount: number;
@@ -303,6 +310,39 @@ describe('digUp', () => {
         const abc:{a:{b:{c:number}}} = {a:{b:{c:0}}};
         dig(abc, 'a', 'b', 'c').set(1);
         expect(abc.a.b.c).toEqual(1);
+    });
+    it('should set a nested value using array', () => {
+        // See 1 https://codesandbox.io/s/wispy-sun-wpns6
+        // See 2 https://github.com/vddrift/dig-ts/issues/1
+        type Node = { id: string, children?:Node[]}
+        type Tree = { Nodes:Node[] };
+        const tree:Tree = {
+            Nodes: [
+                {
+                    id: "e5d65e26-11ea-4af0-8f03-f487c554d297",
+                    children: [
+                        {
+                            id: "523e73ff-2666-4fb2-adb2-2b2d21d4e953",
+                            children: []
+                        },
+                        {
+                            id: "106202b8-c7b5-471e-afc9-8c5a89c50d03",
+                            children: []
+                        }
+                    ]
+                },
+                {
+                    id: "286b6e3b-6cd5-4714-8756-9a270be9d6b4",
+                    children: [
+                        { id: "523e73ff-2666-4fb2-adb2-2b2d21d4e953", children: [] },
+                    ]
+                }
+            ]
+        };
+
+        const digger = dig(tree, ["Nodes", 0, "children", 0, "children"]);
+        digger.set([{id:"#################"}]);
+        expect((tree as any).Nodes[0].children[0].children[0].id).toEqual('#################');
     });
     it('should set a nested value while creating nested objects', () => {
         const abc:{a?:{b?:{c?:number}}} = {};
