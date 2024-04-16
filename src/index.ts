@@ -17,6 +17,7 @@
 //     }
 // }
 
+
 export const digUp:DigupFunction = (object:any, ...keys:any[]): any =>{
     if (object === undefined) {
         return undefined;
@@ -215,9 +216,6 @@ class Digger<T>
         if (result===undefined) {
             return 0; // length is 0
         }
-        if (!(result instanceof Array)) {
-            throw new Error('Can only push to array');
-        }
         return result.push.apply(result, items); // length of changed array.
     }
     // push<Item>(item: Item, create?: boolean) {
@@ -334,7 +332,7 @@ class Digger<T>
  *      abc = {a:{b:[{c:1}, {c:2}]}}
  *      collect(abc, ['a', 'b', 'c'])   //   [1, 2]
  */
-function collect(input, keys: string[], result = new Array()) {
+function collect(input, keys: string[], result = []) {
 
     // A. Arrays: flatten
     if (input instanceof Array
@@ -363,7 +361,7 @@ function collect(input, keys: string[], result = new Array()) {
 function collectNumbers(object, keys) {
     return collect(object, keys)
             .map(val=>parseFloat(val))
-            .filter(val=>typeof val === 'number' && !isNaN(val));
+            .filter(val=>!isNaN(val));
 }
 function getMax(object, keys) {
     const numbers = collectNumbers(object, keys);
@@ -1148,10 +1146,10 @@ interface FilteredArray<T> extends Array<T> {
 /**
  * Remove part of a nested object, retracing path, clearing empty objects.
  * @param obj
- * @param path
+ * @param keys
  */
 export function objectPathDelete(obj, keys) {
-    let refs = new Array(); // []; somehow doesn't work
+    let refs = []; // []; somehow doesn't work
 
     // Step inside object, storing references.
     for (let i = 0; i < keys.length; i++) {
