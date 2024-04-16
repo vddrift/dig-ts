@@ -361,7 +361,7 @@ function collect(input, keys: string[], result = []) {
 function collectNumbers(object, keys) {
     return collect(object, keys)
             .map(val=>parseFloat(val))
-            .filter(val=>typeof val === 'number' && !isNaN(val));
+            .filter(val=>!isNaN(val));
 }
 function getMax(object, keys) {
     const numbers = collectNumbers(object, keys);
