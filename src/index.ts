@@ -17,6 +17,7 @@
 //     }
 // }
 
+
 export const digUp:DigupFunction = (object:any, ...keys:any[]): any =>{
     if (object === undefined) {
         return undefined;
